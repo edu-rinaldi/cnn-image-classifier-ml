@@ -1,0 +1,10 @@
+containers/plastic_tray
+tableware/rice_bowl
+drinks/soft_drink_bottle
+cutlery/chopsticks
+fruits/Plums
+snacks/Potato_Chips_bag
+food/Oatmeal_box
+cleaning_stuff/Angle_Brooms
+
+['plastic_tray', 'rice_bowl', 'soft_drink_bottle','chopsticks','Plums','Potato_Chips_bag','Oatmeal_box','Angle_Brooms']
