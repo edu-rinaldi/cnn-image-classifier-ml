@@ -34,12 +34,11 @@ if __name__ == "__main__":
     built_model_name = f'{model_name}_{epochs}Epochs_{IMG_HEIGHT}x{IMG_WIDTH}_batch{BATCH_SIZE}'
 
     # Save history for the built model
-    with open(f'history/{built_model_name}.json', 'w') as json_file:
-        dump(history.history, json_file)
+    save_history(history.history, built_model_name)
         
     # saving the model
     save_model(model, built_model_name)
 
-    
+
 
 

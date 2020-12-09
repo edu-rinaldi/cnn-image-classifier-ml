@@ -1,11 +1,20 @@
-import numpy as np
 import tensorflow as tf
+
 import keras
 from keras.models import Sequential
 from keras.metrics import BinaryAccuracy, Precision, Recall
 from keras.layers import Conv2D, Dense, MaxPooling2D, AveragePooling2D, Flatten, ZeroPadding2D
+
+import numpy as np
+
 from os.path import join
+from json import load, dump
+
+import matplotlib.pyplot as plt
+
 from config import * 
+
+
 
 def create_LeNet(input_shape, num_classes):
     model = Sequential()
@@ -62,3 +71,38 @@ def load_dataset(dataset_path, test_size=0.33):
     )
 
     return train_gen, validation_gen, train_gen.class_indices
+
+def save_history(history, model_name, debug=False):
+    if debug: print("Saving the history")
+    with open(f'history/{model_name}.json', 'w') as json_file:
+        dump(history, json_file)
+    if debug: print("History correctly saved")
+
+def plot_history(history):
+    if history is not dict:
+        with open(history, 'r') as json_file:
+            history = load(json_file)
+
+    acc = np.array(history['val_binary_accuracy'])
+    precision = np.array(history['val_precision'])
+    recall = np.array(history['val_recall'])
+    loss = np.array(history['val_loss'])
+    epochs = np.arange(len(acc))
+
+    fig, axes = plt.subplots(2,2)
+
+    axes[0,0].plot(epochs, acc)
+    axes[0,0].set(xlabel='epochs', ylabel='accuracy')
+    
+    axes[0,1].plot(epochs, loss)
+    axes[0,1].set(xlabel='epochs', ylabel='loss')
+    
+    axes[1,0].plot(epochs, precision)
+    axes[1,0].set(xlabel='epochs', ylabel='precision')
+    
+    axes[1,1].plot(epochs, recall)
+    axes[1,1].set(xlabel='epochs', ylabel='recall')
+
+    fig.set_tight_layout(True)
+
+    plt.show()
