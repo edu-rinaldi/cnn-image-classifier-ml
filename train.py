@@ -1,67 +1,45 @@
 import tensorflow as tf
+
 import keras
 from keras.models import Sequential
+from keras.metrics import BinaryAccuracy, Precision, Recall
 from keras.layers import Conv2D, Dense, MaxPooling2D, AveragePooling2D, Flatten, ZeroPadding2D
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, classification_report
+
+from json import dump
+
 from utils import *
+from config import *
 
-tf.config.experimental.list_physical_devices('GPU')
+if __name__ == "__main__":
+    tf.config.experimental.list_physical_devices('GPU')
 
-def create_cnn(input_shape, num_classes):
-    """
-        Creates a CNN
-    """
+    model_name = 'LeNet'
 
-    model = Sequential()
+    # loading the dataset
+    training_gen, validation_gen, class_indices = load_dataset('dataset')
+    num_classes = len(class_indices)
 
-    # print('\tC1: Convolutional 6 kernels 5x5')
-    model.add(Conv2D(6, kernel_size=(5, 5), strides=(1, 1), activation='ReLU', input_shape=input_shape, padding='same'))
-    # print('\tS2: Average Pooling 2x2 stride 2x2')
-    model.add(AveragePooling2D(pool_size=(2, 2), strides=(2, 2), padding='valid'))
-    # print('\tC3: Convolutional 16 kernels 5x5')
-    model.add(Conv2D(16, kernel_size=(5, 5), strides=(1, 1), activation='ReLU', padding='valid'))
-    # print('\tS4: Average Pooling 2x2 stride 2x2')
-    model.add(AveragePooling2D(pool_size=(2, 2), strides=(2, 2), padding='valid'))
-    # print('\tC5: Convolutional 120 kernels 5x5')
-    model.add(Conv2D(120, kernel_size=(5, 5), strides=(1, 1), activation='ReLU', padding='valid'))
-    model.add(Flatten())
-    # print('\tF6: Fully connected, 84 units')
-    model.add(Dense(84, activation='ReLU'))
-    # print('\tF7: Fully connected, 10 units')
-    model.add(Dense(num_classes, activation='softmax'))
+    # choosing the model
+    if model_name == 'LeNet':
+        model = create_LeNet(training_gen.image_shape, num_classes)
+    else:
+        print("Error: model name does not exist")
+        exit(-1)
 
-    optimizer = 'adam' #alternative 'SGD'
-    model.compile(loss=keras.losses.categorical_crossentropy, optimizer=optimizer, metrics=['accuracy'])
+    # training
+    epochs = 12
+    history = model.fit(training_gen, batch_size=BATCH_SIZE, epochs=epochs, validation_data = validation_gen)
+
+    # built model name for saving history and the model its self
+    built_model_name = f'{model_name}_{epochs}Epochs_{IMG_HEIGHT}x{IMG_WIDTH}_batch{BATCH_SIZE}'
+
+    # Save history for the built model
+    with open(f'history/{built_model_name}.json', 'w') as json_file:
+        dump(history.history, json_file)
+        
+    # saving the model
+    save_model(model, built_model_name)
+
     
-    return model
-
-# loading dataset
-# X_train, X_test, y_train, y_test, labels = load_dataset('dataset')
-
-
-# # creating the model
-# model = create_cnn(X_train[0].shape, len(labels))
-
-# # train
-# epochs = 10
-# history = model.fit(X_train, y_train, batch_size=32, epochs=epochs, validation_data = (X_test, y_test))
-
-# y_pred = np.argmax(model.predict(X_test), axis=1)
-# y_pred = keras.utils.to_categorical(y_pred, len(labels))
-# print(y_pred.shape, y_test.shape)
-# print(classification_report(y_test, y_pred))
-
-
-train_ds, test_ds = load_dataset('dataset_raw2')
-for elem in train_ds:
-    print(elem)
-    break
-model = create_cnn((256,256,3), 8)
-
-# train
-epochs = 10
-history = model.fit(train_ds, batch_size=32, epochs=epochs, validation_data = test_ds)
-
 
 

@@ -1,64 +1,64 @@
 import numpy as np
-import cv2 as cv
-import os.path
-import pathlib
 import tensorflow as tf
 import keras
+from keras.models import Sequential
+from keras.metrics import BinaryAccuracy, Precision, Recall
+from keras.layers import Conv2D, Dense, MaxPooling2D, AveragePooling2D, Flatten, ZeroPadding2D
+from os.path import join
+from config import * 
 
-from sklearn.model_selection import train_test_split
+def create_LeNet(input_shape, num_classes):
+    model = Sequential()
 
+    model.add(Conv2D(6, kernel_size=(5, 5), strides=(1, 1), activation='relu', input_shape=input_shape, padding='same'))
+    model.add(AveragePooling2D(pool_size=(2, 2), strides=(2, 2), padding='valid'))
+    model.add(Conv2D(16, kernel_size=(5, 5), strides=(1, 1), activation='relu', padding='valid'))
+    model.add(AveragePooling2D(pool_size=(2, 2), strides=(2, 2), padding='valid'))
+    model.add(Conv2D(120, kernel_size=(5, 5), strides=(1, 1), activation='relu', padding='valid'))
+    model.add(Flatten())
+    model.add(Dense(84, activation='relu'))
+    model.add(Dense(num_classes, activation='softmax'))
 
+    optimizer = 'adam' #alternative 'SGD'
+    METRICS = [BinaryAccuracy(), Precision(), Recall()]
+    
+    model.compile(loss=keras.losses.categorical_crossentropy, optimizer=optimizer, metrics=METRICS)
+    return model
 
-def get_target_label(path_img):
-    return path_img.split(".")[2].split("+")[0]
-
-# def load_dataset(path, test_size=0.33):
-#     labels = ['plastic_tray', 'rice_bowl', 'soft_drink_bottle','chopsticks','Plums','Potato_Chips_bag','Oatmeal_box','Angle_Brooms']
-#     idByLabel = {el:i for i, el in enumerate(labels)}
-
-#     X = []
-#     y = []
-
-#     files = os.listdir(path)
-#     for file_img in files:
-#         relpath = os.path.join(path, file_img)
-#         if os.path.isdir(relpath) or file_img[0] == '.': continue
-        
-#         # open img
-#         img = cv.imread(relpath, cv.IMREAD_COLOR)
-#         # img = cv.resize(img, (128,128))
-#         img = np.asarray(img, dtype=np.float)/255
-#         # print(img.dtype)
-#         X += [img]
-#         y += [idByLabel[get_target_label(file_img)]]
-#     X, y = np.array(X), np.array(y)
-#     y = keras.utils.to_categorical(y, len(labels))
-
-#     # split dataset in training and test
-#     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
-
-#     return X_train, X_test, y_train, y_test, labels
+def save_model(model, model_name, debug=False):
+    if debug: print("Saving the model")
+    model.save(join('models', model_name))
+    if debug:
+        print("Model saved.")
+        print(model)
 
 def load_dataset(dataset_path, test_size=0.33):
-    data_dir = pathlib.Path(dataset_path)
 
-    train_ds = tf.keras.preprocessing.image_dataset_from_directory(
-        data_dir, 
+    datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+        rescale=1./255,
+        horizontal_flip=True,
+        vertical_flip=True,
+        preprocessing_function=lambda img: tf.image.resize_with_pad(img, IMG_HEIGHT, IMG_WIDTH, antialias=True),
         validation_split=test_size,
-        
-        label_mode="categorical",
-        subset="training", 
-        seed=123)
-    val_ds = tf.keras.preprocessing.image_dataset_from_directory(
-        data_dir, 
-        validation_split=test_size, 
-        label_mode="categorical",
-        subset="validation",
-        seed=123)
-    
-    # class_names = train_ds.class_names
-    # print(class_names)
-    train_ds = train_ds.map(lambda x,y: (x/255, y))
-    val_ds = val_ds.map(lambda x,y: (x/255, y))
-    
-    return train_ds, val_ds
+        dtype=tf.float32
+    )
+
+    train_gen = datagen.flow_from_directory(
+        dataset_path,
+        target_size=IMG_SIZE,
+        class_mode='categorical',
+        batch_size=BATCH_SIZE,
+        shuffle=True,
+        subset='training'
+    )
+
+    validation_gen = datagen.flow_from_directory(
+        dataset_path,
+        target_size=IMG_SIZE,
+        class_mode='categorical',
+        batch_size=BATCH_SIZE,
+        shuffle=False,
+        subset='validation'
+    )
+
+    return train_gen, validation_gen, train_gen.class_indices
