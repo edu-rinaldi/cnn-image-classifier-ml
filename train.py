@@ -13,7 +13,7 @@ from config import *
 if __name__ == "__main__":
     tf.config.experimental.list_physical_devices('GPU')
 
-    model_name = 'LeNet'
+    model_name = 'LeNet' # or 'ConvNet'    to implement 
 
     # loading the dataset
     training_gen, validation_gen, class_indices = load_dataset('dataset')
