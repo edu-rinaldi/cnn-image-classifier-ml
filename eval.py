@@ -3,7 +3,7 @@ from utils import *
 
 if __name__ == "__main__":
     
-    model_name = 'LeNet_12Epochs_256x256_batch32'
+    model_name = 'LeNet_12Epochs_256x256_batch32_prova'
     plot_history('history/'+model_name+'.json')
 
 

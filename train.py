@@ -1,5 +1,5 @@
 import tensorflow as tf
-
+import sys
 import keras
 from keras.models import Sequential
 from keras.metrics import BinaryAccuracy, Precision, Recall
@@ -13,7 +13,7 @@ from config import *
 if __name__ == "__main__":
     tf.config.experimental.list_physical_devices('GPU')
 
-    model_name = 'LeNet' # or 'ConvNet'    to implement 
+    model_name = 'LeNet' # or 'AlexNet'    to implement 
 
     # loading the dataset
     training_gen, validation_gen, class_indices = load_dataset('dataset')
@@ -22,12 +22,13 @@ if __name__ == "__main__":
     # choosing the model
     if model_name == 'LeNet':
         model = create_LeNet(training_gen.image_shape, num_classes)
+    elif model_name == 'AlexNet':
+        model = create_AlexNet(training_gen.image_shape, num_classes)
     else:
         print("Error: model name does not exist")
         exit(-1)
-
     # training
-    epochs = 12
+    epochs = 35
     history = model.fit(training_gen, batch_size=BATCH_SIZE, epochs=epochs, validation_data = validation_gen)
 
     # built model name for saving history and the model its self
