@@ -1,2 +1,0 @@
-LeNet_15Epochs_64x64_batch32  --> loss: 1.4663 - binary_accuracy: 0.9122 - precision: 0.6765 - recall: 0.5708 --> overfitting starting from 13 epochs (total 15 epochs)
-
