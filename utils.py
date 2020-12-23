@@ -11,6 +11,8 @@ import numpy as np
 from os.path import join
 from json import load, dump
 
+import itertools
+
 import matplotlib.pyplot as plt
 
 from config import * 
@@ -108,7 +110,7 @@ def create_LeNet(input_shape, num_classes):
     model.add(Dense(84, activation='relu'))
     model.add(Dense(num_classes, activation='softmax'))
 
-    optimizer = 'adam' #alternative 'SGD'
+    optimizer = 'adam'
     METRICS = [CategoricalAccuracy(), Precision(), Recall()]
     
     model.compile(loss=keras.losses.categorical_crossentropy, optimizer=optimizer, metrics=METRICS)
@@ -127,6 +129,10 @@ def load_dataset(dataset_path, test_size=0.33):
         rescale=1./255,
         horizontal_flip=True,
         vertical_flip=True,
+        zoom_range=0.1,
+        rotation_range=10,
+        width_shift_range=0.1,
+        height_shift_range=0.1,
         preprocessing_function=lambda img: tf.image.resize_with_pad(img, IMG_HEIGHT, IMG_WIDTH, antialias=True),
         validation_split=test_size,
         dtype=tf.float32
@@ -185,4 +191,37 @@ def plot_history(history):
 
     fig.set_tight_layout(True)
 
+    plt.show()
+
+
+def plot_confusion_matrix(cm, classes, normalize=True, title='Confusion matrix', cmap=plt.cm.Blues):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    plt.figure(figsize=(10,10))
+
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        cm = np.around(cm, decimals=2)
+        cm[np.isnan(cm)] = 0.0
+        print("Normalized confusion matrix")
+    else:
+        print('Confusion matrix, without normalization')
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, cm[i, j],
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
     plt.show()

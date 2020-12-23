@@ -1,6 +1,7 @@
 import tensorflow as tf
 import sys
 import keras
+from keras.utils.vis_utils import plot_model
 from keras.models import Sequential
 from keras.metrics import BinaryAccuracy, Precision, Recall
 from keras.layers import Conv2D, Dense, MaxPooling2D, AveragePooling2D, Flatten, ZeroPadding2D
@@ -13,7 +14,7 @@ from config import *
 if __name__ == "__main__":
     tf.config.experimental.list_physical_devices('GPU')
 
-    model_name = 'LeNet' # or 'AlexNet'    to implement 
+    model_name = 'AlexNet' # 'LeNet' or 'AlexNet'
 
     # loading the dataset
     training_gen, validation_gen, class_indices = load_dataset('dataset')
@@ -27,19 +28,18 @@ if __name__ == "__main__":
     else:
         print("Error: model name does not exist")
         exit(-1)
+
+    model.summary()
+    
     # training
-    epochs = 35
+    epochs = 50
     history = model.fit(training_gen, batch_size=BATCH_SIZE, epochs=epochs, validation_data = validation_gen)
 
     # built model name for saving history and the model its self
-    built_model_name = f'{model_name}_{epochs}Epochs_{IMG_HEIGHT}x{IMG_WIDTH}_batch{BATCH_SIZE}'
+    built_model_name = f'{model_name}_{epochs}Epochs_{IMG_HEIGHT}x{IMG_WIDTH}_batch{BATCH_SIZE}_da'
 
     # Save history for the built model
     save_history(history.history, built_model_name)
         
     # saving the model
     save_model(model, built_model_name)
-
-
-
-
